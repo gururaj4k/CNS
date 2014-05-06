@@ -1,0 +1,204 @@
+-- Table: points2
+
+-- DROP TABLE points2;
+
+CREATE TABLE points2
+(
+  pid serial NOT NULL,
+  co_ord geometry,
+  floor integer,
+  source integer,
+  partition integer,
+  isactive boolean,
+  CONSTRAINT points2_pkey PRIMARY KEY (pid),
+  CONSTRAINT points2_source_fkey FOREIGN KEY (source)
+      REFERENCES points2 (pid) MATCH SIMPLE
+      ON UPDATE NO ACTION ON DELETE NO ACTION
+)
+WITH (
+  OIDS=FALSE
+);
+ALTER TABLE points2
+  OWNER TO postgres;
+
+
+
+-- Table: wifi
+
+-- DROP TABLE wifi;
+
+CREATE TABLE wifi
+(
+  wid serial NOT NULL,
+  ssid character varying(50),
+  bssid character varying(50),
+  strength integer,
+  pid integer,
+  scanno integer,
+  dbm integer,
+  updated_time timestamp with time zone,
+  CONSTRAINT wifi_pkey PRIMARY KEY (wid),
+  CONSTRAINT wifi_pid_fkey FOREIGN KEY (pid)
+      REFERENCES points2 (pid) MATCH SIMPLE
+      ON UPDATE NO ACTION ON DELETE NO ACTION
+)
+WITH (
+  OIDS=FALSE
+);
+ALTER TABLE wifi
+  OWNER TO postgres;
+
+
+
+-- Table: parkinglot
+
+-- DROP TABLE parkinglot;
+
+CREATE TABLE parkinglot
+(
+  plid serial NOT NULL,
+  lot integer,
+  target integer,
+  pid integer,
+  CONSTRAINT parkinglot_pkey PRIMARY KEY (plid),
+  CONSTRAINT parkinglot_pid_fkey FOREIGN KEY (pid)
+      REFERENCES points2 (pid) MATCH SIMPLE
+      ON UPDATE NO ACTION ON DELETE NO ACTION,
+  CONSTRAINT parkinglot_target_fkey FOREIGN KEY (target)
+      REFERENCES points2 (pid) MATCH SIMPLE
+      ON UPDATE NO ACTION ON DELETE NO ACTION
+)
+WITH (
+  OIDS=FALSE
+);
+ALTER TABLE parkinglot
+  OWNER TO postgres;
+
+
+
+-- Table: direction_partitions
+
+-- DROP TABLE direction_partitions;
+
+CREATE TABLE direction_partitions
+(
+  direction integer,
+  partition integer
+)
+WITH (
+  OIDS=FALSE
+);
+ALTER TABLE direction_partitions
+  OWNER TO postgres;
+
+
+-- Table: lines2
+
+-- DROP TABLE lines2;
+
+CREATE TABLE lines2
+(
+  id serial NOT NULL,
+  source integer,
+  target integer,
+  cost double precision,
+  lstring geometry,
+  CONSTRAINT lines2_pkey PRIMARY KEY (id),
+  CONSTRAINT lines2_source_fkey FOREIGN KEY (source)
+      REFERENCES points2 (pid) MATCH SIMPLE
+      ON UPDATE NO ACTION ON DELETE NO ACTION,
+  CONSTRAINT lines2_target_fkey FOREIGN KEY (target)
+      REFERENCES points2 (pid) MATCH SIMPLE
+      ON UPDATE NO ACTION ON DELETE NO ACTION
+)
+WITH (
+  OIDS=FALSE
+);
+ALTER TABLE lines2
+  OWNER TO postgres;
+
+
+
+-- Function: getpointid(integer, integer, integer)
+
+-- DROP FUNCTION getpointid(integer, integer, integer);
+
+CREATE OR REPLACE FUNCTION getpointid(gco_ord_x integer, gco_ord_y integer, gfloor integer)
+  RETURNS SETOF points2 AS
+$BODY$
+    SELECT pid, co_ord, floor,source,partition,isactive
+    from points2
+    where ST_X(co_ord)=gco_ord_x and ST_Y(co_ord)=gco_ord_y and floor=gfloor ;
+$BODY$
+  LANGUAGE sql VOLATILE
+  COST 100
+  ROWS 1000;
+ALTER FUNCTION getpointid(integer, integer, integer)
+  OWNER TO postgres;
+
+
+
+-- Function: getsource(integer, integer, integer)
+
+-- DROP FUNCTION getsource(integer, integer, integer);
+
+CREATE OR REPLACE FUNCTION getsource(gco_ord_x integer, gco_ord_y integer, gfloor integer)
+  RETURNS SETOF points2 AS
+$BODY$   
+    
+    select pid,co_ord,floor,source,partition,isactive from points2 
+    where floor=gfloor 
+    order by ST_distance(ST_geomfromtext('POINT('||gco_ord_x||' '|| gco_ord_y||')'),co_ord) LIMIT 1;
+    
+$BODY$
+  LANGUAGE sql VOLATILE
+  COST 100
+  ROWS 1000;
+ALTER FUNCTION getsource(integer, integer, integer)
+  OWNER TO postgres;
+
+
+
+
+
+
+-- Function: gettarget(integer)
+
+-- DROP FUNCTION gettarget(integer);
+
+CREATE OR REPLACE FUNCTION gettarget(parkingid integer)
+  RETURNS SETOF points2 AS
+$BODY$
+    SELECT p.pid, p.co_ord, p.floor,pl.target,partition,isactive
+    from points2 p,parkinglot pl	
+    where pl.lot=parkingId AND pl.pid=p.pid
+$BODY$
+  LANGUAGE sql VOLATILE
+  COST 100
+  ROWS 1000;
+ALTER FUNCTION gettarget(integer)
+  OWNER TO postgres;
+
+
+
+-- Function: insertwifi(character varying, character varying, integer, integer, integer, integer, integer, integer)
+
+-- DROP FUNCTION insertwifi(character varying, character varying, integer, integer, integer, integer, integer, integer);
+
+CREATE OR REPLACE FUNCTION insertwifi(ssid character varying, bssid character varying, strength integer, co_ord_x integer, co_ord_y integer, floor integer, scanno integer, dbm integer)
+  RETURNS void AS
+$BODY$
+   DECLARE pid1 int;
+   BEGIN
+  
+	SELECT pid INTO pid1 from getpointID(co_ord_x,co_ord_y,floor); 
+	IF EXISTS (SELECT pid from getpointID(co_ord_x,co_ord_y,floor)) THEN
+		INSERT INTO wifi(SSID, BSSID, strength, PID,SCANNO,DBM,updated_time) values(SSID, BSSID, strength, pid1,scanno,dbm,localtimestamp);
+        END IF;
+  END;
+    $BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+ALTER FUNCTION insertwifi(character varying, character varying, integer, integer, integer, integer, integer, integer)
+  OWNER TO postgres;
+

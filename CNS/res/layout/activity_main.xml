@@ -1,0 +1,129 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:map="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/RelativeLayout1"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+
+    <fragment
+        android:id="@+id/cnsmap"
+        android:name="com.google.android.gms.maps.SupportMapFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        map:cameraTargetLat="41.874468"
+        map:cameraTargetLng="-87.654646"
+        map:cameraZoom="20" />
+
+    <LinearLayout
+        android:id="@+id/linearLayout1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true"
+        android:orientation="horizontal" >
+
+        <ImageButton
+            android:id="@+id/btnLocate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginRight="180dp"
+            android:background="@null"
+            android:src="@drawable/locate" />
+
+        <TextView
+            android:id="@+id/txtParkingSpot"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBaseline="@+id/etParkingSpot"
+            android:layout_toLeftOf="@+id/etParkingSpot"
+            android:text="Spot:"
+            android:textStyle="bold" />
+
+        <EditText
+            android:id="@+id/etParkingSpot"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginRight="2dp"
+            android:ems="10"
+            android:inputType="number"
+            android:width="70dp" />
+
+        <ImageButton
+            android:id="@+id/btnNavigate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignTop="@+id/etParkingSpot"
+            android:layout_marginRight="0dp"
+            android:layout_toRightOf="@+id/etParkingSpot"
+            android:background="@null"
+            android:src="@drawable/route" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/txtLocation"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/btnLocate"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="30dp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/txtCurrentstatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:layout_marginBottom="14dp"
+        android:text="txtCurrentstatus" />
+
+    <TextView
+        android:id="@+id/txtNeoghbors"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/txtLocation"
+        android:layout_alignParentLeft="true"
+        android:layout_marginBottom="48dp"
+        android:text="" />
+
+    <CheckBox
+        android:id="@+id/chkNeighbor"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/linearLayout1"
+        android:text="Neighbor" />
+
+    <EditText
+        android:id="@+id/etScanTimes"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/chkNeighbor"
+        android:layout_alignParentRight="true"
+        android:text="2"
+        android:ems="10"
+        android:inputType="number"
+        android:width="70dp" />
+
+    <TextView
+        android:id="@+id/textView1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/etScanTimes"
+        android:layout_alignBottom="@+id/etScanTimes"
+        android:layout_toLeftOf="@+id/etScanTimes"
+        android:text="Scan Times:" />
+
+    <CheckBox
+        android:id="@+id/chkReroute"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/textView1"
+        android:text="re-route" />
+
+</RelativeLayout>
